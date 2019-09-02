@@ -19,5 +19,9 @@ object BMember{
     println("--------------------Chapter3------------------")
     new BMember("reader")
     new BConstructor("reader")
+//    Hello null
+//    I repeat:Hello reader
+//    Hello reader
+//    I repeat:Hello reader
   }
 }
