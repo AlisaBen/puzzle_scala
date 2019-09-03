@@ -205,6 +205,72 @@ class C extends B{
 
 上面这段话我也不是特别明白，等到用到的时候再来思考
 
+### 第5章 集合操作
+
+猜猜下面的输出结果是多少
+
+```Scala
+
+    def sumSizes(collections:Iterable[Iterable[_]]):Int = {
+//      println(s"collections:$collections")
+//      println(collections.map(_.size))
+      collections.map(_.size).sum
+    }
+    println(sumSizes(List(Set(1,2),List(3,4))))
+
+    println(sumSizes(Set(List(1,2),Set(3,4))))
+//    println(sumSizes(Array(List(1,2),Set(3,4),List(5,6))))
+  
+```
+Scala集合库的另外一个特征就是操作符一般会保持输入的集合类型不变
+也就是说，第一个输出的集合是 `List`类型，`map`之后返回的也就是 `List`类型，允许重复值存在
+而第二个输入的是 `Set`类型，`map`之后返回的也是 `Set`类型，不允许重复值存在集合中，所以返回的集合实际上只有一个2，所以最后的求和也就是2
+
+解决办法:
+1. 修改外部集合的类型
+```Scala
+    def sumSizes1(collections:Iterable[Iterable[_]]):Int = {
+      collections.toSeq.map(_.size).sum
+    }
+```
+这个很好理解，不管是什么集合类型，都将其转换成`Seq`
+
+2. 利用 `fold`方法来实现
+
+```Scala
+    def sumSizes2(collections:Iterable[Iterable[_]]):Int = {
+      collections.foldLeft(0){
+        (sumOfSizes,collection) => sumOfSizes + collection.size
+      }
+    }
+```
+下面看一下 `foldLeft`的源码
+
+```
+
+  def foldLeft[B](z: B)(op: (B, A) => B): B = {
+    var result = z
+    this foreach (x => result = op(result, x))
+    result
+  }
+```
+
+`foldLeft`函数接收两个参数，第一个参数是最后返回结果的初始值，该例子中要计算的是外集合里面所有集合的长度和，所以初始值是0，
+第二个参数是要执行的函数，函数的输入参数是 `(sumOfSizes,collection)`
+第一个参数是最后要返回的结果， `collection`是集合内部的每个单元
+
+还是挺喜欢 `foldLeft`函数的，看起来比较高级
+但是使用起来还不是很熟练
+
+
+
+
+
+
+
+
+
+
 
 
 
