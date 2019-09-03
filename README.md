@@ -79,7 +79,7 @@ val (month,minute,second) = (23,0,0)
     println(checkGuess(theAnswer))
 ```
 
-### 第三章 继承
+### 第三章 继承 成员声明的位置
 
 如果没写过继承的例子或者看不懂下面的代码，可以先看一些特质的例子 [特质](https://docs.scala-lang.org/zh-cn/tour/traits.html)
 
@@ -136,6 +136,75 @@ class C extends B{
 new C()
 
 ```
+
+以下规则控制 `val`的初始化和重载行为：
+1. 超类会在子类之前初始化
+2. 按照声明的顺序对成员初始化
+3. 当一个 `val`被重载，只能初始化一次
+4. 与抽象 `val`类似，重载的 `val`在超类构造期间会有一个缺省的初始值
+
+上面的例子中，由于类 `C`中重载了 `bar`，特质A构造的时候，`bar`的初始值分配的是0而不是10，因为特质A中对 `bar`赋值10是完全不可见的
+
+#### 预初始化字段
+
+```Scala
+trait A{
+  val foo:Int//缺省初始值，Boolean缺省初始值是false，Unit缺省初始值是（），
+  def bar:Int = 10//附初值的变量后面只能用override
+
+  println(s"In A:foo=$foo,bar=$bar")//0,0,0
+}
+
+class B extends A{
+  val foo:Int = 25
+  println(s"In B:foo=$foo,bar=$bar")//25,36,0
+
+}
+class C extends B{
+  override val foo: Int = 46//当一个val被重载的时候，只能初始化一次
+  override def bar: Int = 100
+  println(s"In C:foo=$foo,bar=$bar")//25,36,99
+
+}
+```
+上面的这段例子将原来的 `bar`初始化的方式改为了 `def`
+因为 `def`方法体不属于主构造器，不参与类初始化，因为类C中重载了 `bar`
+多态会特别选择使用这个重载的定义
+
+#### lazy val
+
+```Scala
+trait A{
+  val foo:Int//缺省初始值，Boolean缺省初始值是false，Unit缺省初始值是（），
+  lazy val bar:Int = 10//附初值的变量后面只能用override
+
+  println(s"In A:foo=$foo,bar=$bar")//0,0,0
+}
+
+class B extends A{
+  val foo:Int = 25
+  println(s"In B:foo=$foo,bar=$bar")//25,36,0
+
+}
+class C extends B{
+  override val foo: Int = 46//当一个val被重载的时候，只能初始化一次
+  override lazy val bar: Int = 100
+  println(s"In C:foo=$foo,bar=$bar")//25,36,99
+
+}
+```
+在这个解决方案中，使用 `lazy val`声明变量，意味着在特质构造器件就将它初始化成了100，
+`lazy val`的特点是将高成本的初始化过程尽可能推迟到最后时刻
+
+`lazy val`的缺点：
+
+1. 底层发生同步，引起轻微的性能成本
+2. 不能声明抽象 `lazy val`
+3. 使用 `lazy val`容易产生循环引用，导致首次访问时发生栈溢出错误，甚至可能发生思索
+4. 如果在对象间做了声明而 `lazy val`间的循环依赖却不存是，就能发生思索
+
+上面这段话我也不是特别明白，等到用到的时候再来思考
+
 
 
 

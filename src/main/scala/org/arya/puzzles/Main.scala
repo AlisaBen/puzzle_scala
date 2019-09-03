@@ -6,6 +6,9 @@ object Main {
     Chapter2.Test()
     Chapter3.Test()
     Chapter4.Test()
+    Chapter4_1.Test()
+    Chapter4_2.Test()
+    Chapter5.Test()
   }
 
 }
