@@ -337,6 +337,22 @@ case _ => false
 
 > `filter`是创建一个新的集合并因而产生对元集合全部运行的符合。`withFilter`是一个简单的师徒，限制数据项传递到后续`map`,`flatMap`,`foreach`和`withFilter`调用
 
+### 第11章 lazy val
+感觉 `lazy`的特性太好了，每次访问未出事啊哈的 `lazy val`都会检查初始化阶段直到初始化成功
+
+```Scala
+    var x = 0
+    lazy val y = 1 / x
+    try {
+      println(y)
+    }catch {
+      case _ : Exception =>
+        x = 1
+        println(y)
+    }
+```
+假如希望可以引进一个公共变量，这个变量依赖最终生成的文件内容，但是并不像一直阻塞一个线程直到文件内容准备好，解决这个问题的方法就是将变量定义为 `lazy val`
+
 
 
 

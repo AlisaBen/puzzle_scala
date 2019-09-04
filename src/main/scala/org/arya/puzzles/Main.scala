@@ -11,6 +11,8 @@ object Main {
     Chapter5.Test()
     Chapter7.Test()
     Chapter8.Test()
+    Chapter10.Test()
+    Chapter11.Test()
   }
 
 }
