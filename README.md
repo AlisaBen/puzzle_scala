@@ -263,6 +263,84 @@ Scala集合库的另外一个特征就是操作符一般会保持输入的集合
 但是使用起来还不是很熟练
 
 
+### 第8章 Map表达式
+
+原来一直以为 `map`方法是代替 `for`循环的一个优雅的写法，可以完全替代
+直到看到下面的例子才发现，原来并不是遮掩g
+
+```Scala
+    val xs = Seq(Seq("a","b","c"),Seq("d","e","f"),Seq("g","h"),Seq("i","j","k"))
+    val ys = for(Seq(x,y,z) <- xs)yield x+y+z
+    println(ys)
+    val zs1 = xs map {case Seq(x,y,z) =>x+y+z}
+    println(zs1)
+```
+因为序列中有一个序列中仅有两个值，所以我猜测两个都是出现匹配错误
+但是实际的执行结果却是 `for`跳跃了这个不匹配的结果，而 `map`方法出现了匹配错误
+
+`for` 模式其实是 `withFilter`和 `map`的集合，可以将匹配的模式执行方法，而忽略不匹配的模式
+
+```Scala
+val xs = Seq(Seq("a","b","c"),Seq("d","e","f"),Seq("g","h"),Seq("i","j","k"))
+for(Seq(x,y,z) <- xs)yield x+y+z
+```
+上面的例子可以用下面的代码完全代替
+
+```Scala
+val xs = Seq(Seq("a","b","c"),Seq("d","e","f"),Seq("g","h"),Seq("i","j","k"))
+
+    val zs2 = xs withFilter{
+      case Seq(x,y,z) => true
+      case _ => false
+    } map{case Seq(x,y,z) => x+y+z}
+
+```
+`withFilter`方法返回一个`WithFilter`类，该类中包含了 `map`、`flatMap`、`filter`和 `withFilter`方法
+所以在上面的例子中的`map`方法的内部构造实际上和平时使用的 `map`方法是不一样的
+
+在这里贴一下两个`map`方法的源代码
+
+常用 `map`
+```
+  def map[B, That](f: A => B)(implicit bf: CanBuildFrom[Repr, B, That]): That = {
+    def builder = { // extracted to keep method size under 35 bytes, so that it can be JIT-inlined
+      val b = bf(repr)
+      b.sizeHint(this)
+      b
+    }
+    val b = builder
+    for (x <- this) b += f(x)
+    b.result
+  }
+```
+`WithFilter`中的`map`
+```
+    def map[B, That](f: A => B)(implicit bf: CanBuildFrom[Repr, B, That]): That = {
+      val b = bf(repr)
+      for (x <- self)
+        if (p(x)) b += f(x)
+      b.result
+    }
+
+```
+看不懂没关系，我也看不懂，重点在 `b+=f(x)`行
+`withFilter`中的 `map`函数增加了 `if(p(x))`守卫
+也就是说只有符合这个模式条件的才执行下面的函数，具体匹配什么模式就是我们例子中的自定义的部分了
+
+我们声明了 
+```
+case Seq(x,y,z) => true
+case _ => false
+
+```
+也就是说只有 `Seq(x,y,z)`模式执行 `map`中的函数，其他模式都不执行
+
+> `filter`是创建一个新的集合并因而产生对元集合全部运行的符合。`withFilter`是一个简单的师徒，限制数据项传递到后续`map`,`flatMap`,`foreach`和`withFilter`调用
+
+
+
+
+
 
 
 

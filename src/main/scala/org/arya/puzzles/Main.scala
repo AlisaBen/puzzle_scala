@@ -9,6 +9,8 @@ object Main {
     Chapter4_1.Test()
     Chapter4_2.Test()
     Chapter5.Test()
+    Chapter7.Test()
+    Chapter8.Test()
   }
 
 }
